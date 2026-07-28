@@ -1,0 +1,16 @@
+.vscode/**
+.vscode-test/**
+src/**
+node_modules/**
+.gitignore
+esbuild.cjs
+esbuild.js
+tsconfig.json
+**/*.ts
+**/*.map
+**/*.test.ts
+.env
+.connections.json
+*.vsix
+package-lock.json
+mcp-db-*.vsix

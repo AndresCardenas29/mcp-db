@@ -1,0 +1,220 @@
+{
+  "name": "mcp-db",
+  "displayName": "MCP DB",
+  "description": "Cliente de bases de datos para VS Code y Cursor con servidor MCP integrado. Explora tablas, ejecuta SQL y gestiona conexiones como DB Code.",
+  "version": "0.1.0",
+  "publisher": "mcp-db",
+  "engines": {
+    "vscode": "^1.99.0"
+  },
+  "categories": [
+    "Data Science",
+    "Other",
+    "AI"
+  ],
+  "keywords": [
+    "database",
+    "sql",
+    "mcp",
+    "postgres",
+    "mysql",
+    "sqlite",
+    "mssql",
+    "cursor"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "icon": "media/icon.png",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "mcp-db",
+          "title": "MCP DB",
+          "icon": "media/activitybar.svg"
+        }
+      ]
+    },
+    "views": {
+      "mcp-db": [
+        {
+          "id": "mcpDb.connections",
+          "name": "Conexiones",
+          "icon": "media/activitybar.svg"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "mcpDb.addConnection",
+        "title": "MCP DB: Añadir conexión",
+        "icon": "$(add)"
+      },
+      {
+        "command": "mcpDb.editConnection",
+        "title": "MCP DB: Editar conexión",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "mcpDb.removeConnection",
+        "title": "MCP DB: Eliminar conexión",
+        "icon": "$(trash)"
+      },
+      {
+        "command": "mcpDb.refresh",
+        "title": "MCP DB: Actualizar",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "mcpDb.openTable",
+        "title": "MCP DB: Ver tabla",
+        "icon": "$(table)"
+      },
+      {
+        "command": "mcpDb.runQuery",
+        "title": "MCP DB: Ejecutar consulta SQL",
+        "icon": "$(play)"
+      },
+      {
+        "command": "mcpDb.testConnection",
+        "title": "MCP DB: Probar conexión",
+        "icon": "$(plug)"
+      },
+      {
+        "command": "mcpDb.copyConnectionId",
+        "title": "MCP DB: Copiar ID de conexión"
+      },
+      {
+        "command": "mcpDb.showMcpInfo",
+        "title": "MCP DB: Información del servidor MCP"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "mcpDb.addConnection",
+          "when": "view == mcpDb.connections",
+          "group": "navigation@1"
+        },
+        {
+          "command": "mcpDb.refresh",
+          "when": "view == mcpDb.connections",
+          "group": "navigation@2"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "mcpDb.openTable",
+          "when": "view == mcpDb.connections && viewItem == table",
+          "group": "inline"
+        },
+        {
+          "command": "mcpDb.testConnection",
+          "when": "view == mcpDb.connections && viewItem == connection",
+          "group": "1_actions@1"
+        },
+        {
+          "command": "mcpDb.runQuery",
+          "when": "view == mcpDb.connections && viewItem == connection",
+          "group": "1_actions@2"
+        },
+        {
+          "command": "mcpDb.editConnection",
+          "when": "view == mcpDb.connections && viewItem == connection",
+          "group": "2_manage@1"
+        },
+        {
+          "command": "mcpDb.removeConnection",
+          "when": "view == mcpDb.connections && viewItem == connection",
+          "group": "2_manage@2"
+        },
+        {
+          "command": "mcpDb.copyConnectionId",
+          "when": "view == mcpDb.connections && viewItem == connection",
+          "group": "3_misc@1"
+        },
+        {
+          "command": "mcpDb.openTable",
+          "when": "view == mcpDb.connections && viewItem == table",
+          "group": "1_actions@1"
+        },
+        {
+          "command": "mcpDb.refresh",
+          "when": "view == mcpDb.connections && viewItem =~ /connection|database|schema/",
+          "group": "1_actions@9"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "MCP DB",
+      "properties": {
+        "mcpDb.defaultRowLimit": {
+          "type": "number",
+          "default": 100,
+          "minimum": 1,
+          "maximum": 10000,
+          "description": "Número máximo de filas al previsualizar una tabla."
+        },
+        "mcpDb.queryTimeoutMs": {
+          "type": "number",
+          "default": 30000,
+          "minimum": 1000,
+          "description": "Timeout de consultas SQL en milisegundos."
+        },
+        "mcpDb.allowDestructiveQueries": {
+          "type": "boolean",
+          "default": false,
+          "description": "Permitir DML/DDL destructivo (DELETE, DROP, TRUNCATE, etc.) vía MCP y la extensión."
+        },
+        "mcpDb.mcp.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Registrar automáticamente el servidor MCP en VS Code / Cursor."
+        }
+      }
+    },
+    "mcpServerDefinitionProviders": [
+      {
+        "id": "mcpDb.mcpProvider",
+        "label": "MCP DB"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run build",
+    "build": "node esbuild.cjs --production",
+    "watch": "node esbuild.cjs --watch",
+    "compile": "tsc -p ./ --noEmit",
+    "package": "vsce package --no-dependencies",
+    "test:unit": "node --import tsx --test src/db/service.test.ts src/mcp/tools.test.ts",
+    "mcp": "node dist/mcp/server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "mysql2": "^3.14.1",
+    "pg": "^8.16.0",
+    "sql.js": "^1.13.0",
+    "tedious": "^18.6.1",
+    "zod": "^3.25.28"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.21",
+    "@types/pg": "^8.15.2",
+    "@types/sql.js": "^1.4.9",
+    "@types/vscode": "^1.99.0",
+    "@vscode/vsce": "^3.4.2",
+    "esbuild": "^0.25.5",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  },
+  "bin": {
+    "mcp-db": "./dist/mcp/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mcp-db/mcp-db"
+  },
+  "license": "MIT"
+}
