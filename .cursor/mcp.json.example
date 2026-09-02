@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "mcp-db": {
+      "command": "node",
+      "args": ["dist/mcp/server.js"],
+      "env": {
+        "MCP_DB_CONNECTIONS": "${userHome}/.mcp-db/connections.json",
+        "MCP_DB_ALLOW_DESTRUCTIVE": "0",
+        "MCP_DB_ROW_LIMIT": "100"
+      }
+    }
+  }
+}
