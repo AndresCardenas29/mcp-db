@@ -46,7 +46,23 @@ Tras instalar, abre el icono **MCP DB** en la barra lateral y pulsa **+** para a
 
 ## Servidor MCP (para el agente)
 
-Al activarse la extensión, se registra automáticamente el provider `MCP DB` mediante `mcpServerDefinitionProviders`. No hace falta editar `mcp.json` en VS Code/Cursor.
+Al activarse la extensión, se registra automáticamente el provider `MCP DB` mediante `mcpServerDefinitionProviders`.
+
+Las conexiones se sincronizan a `~/.mcp-db/connections.json` (ruta canónica compartida entre la UI y el proceso MCP). Si configuras el servidor a mano en `~/.cursor/mcp.json`, apunta esa variable:
+
+```json
+{
+  "mcpServers": {
+    "mcp-db": {
+      "command": "node",
+      "args": ["C:/ruta/a/mcp-db/dist/mcp/server.js"],
+      "env": {
+        "MCP_DB_CONNECTIONS": "C:/Users/TU_USUARIO/.mcp-db/connections.json"
+      }
+    }
+  }
+}
+```
 
 ### Tools
 
