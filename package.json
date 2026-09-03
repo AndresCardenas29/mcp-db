@@ -2,7 +2,7 @@
   "name": "mcp-db",
   "displayName": "MCP DB",
   "description": "Cliente de bases de datos para VS Code y Cursor con servidor MCP integrado. Explora tablas, ejecuta SQL y gestiona conexiones como DB Code.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "mcp-db",
   "engines": {
     "vscode": "^1.99.0"
