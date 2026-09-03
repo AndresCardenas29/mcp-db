@@ -25,26 +25,17 @@ Cliente de bases de datos para **VS Code** y **Cursor** (estilo DB Code): explor
 
 ## Instalación paso a paso
 
-### 1. Clonar e instalar dependencias
+### Opción recomendada: descargar el `.vsix` desde GitHub
 
-```bash
-git clone https://github.com/andrescardenas29/mcp-db.git
-cd mcp-db
-npm install
-```
+En cada push a `main`, CI genera el `.vsix` y lo publica en el release **Latest**:
 
-### 2. Compilar y generar el `.vsix`
+**[https://github.com/AndresCardenas29/mcp-db/releases/tag/latest](https://github.com/AndresCardenas29/mcp-db/releases/tag/latest)**
 
-```bash
-npm run build
-npm run package
-```
+1. Entra al release **Latest**  
+2. En **Assets**, descarga `mcp-db-*.vsix`  
+3. Instálalo en Cursor / VS Code:
 
-Se crea el archivo `mcp-db-0.1.1.vsix` en la raíz del repo.
-
-### 3. Instalar la extensión en Cursor (o VS Code)
-
-**Opción A — línea de comandos**
+**CLI**
 
 ```bash
 # Cursor
@@ -54,15 +45,31 @@ cursor --install-extension mcp-db-0.1.1.vsix
 code --install-extension mcp-db-0.1.1.vsix
 ```
 
-**Opción B — interfaz**
+**Interfaz**
 
 1. Abre Cursor / VS Code  
 2. Ve a **Extensions**  
 3. Menú `⋯` → **Install from VSIX…**  
-4. Selecciona `mcp-db-0.1.1.vsix`  
+4. Selecciona el `.vsix` descargado  
 5. Recarga la ventana si te lo pide (`Developer: Reload Window`)
 
-### 4. Configurar el MCP para el agente (Cursor)
+No hace falta clonar el repo ni compilar.
+
+> El workflow está en [`.github/workflows/build-vsix.yml`](.github/workflows/build-vsix.yml). También puedes lanzarlo a mano en **Actions → Build VSIX → Run workflow**.
+
+### Opción alternativa: compilar desde el código
+
+```bash
+git clone https://github.com/andrescardenas29/mcp-db.git
+cd mcp-db
+npm install
+npm run build
+npm run package
+```
+
+Se crea `mcp-db-*.vsix` en la raíz. Luego instálalo igual que arriba.
+
+### Configurar el MCP para el agente (Cursor)
 
 Para que **el chat/agente** use las mismas conexiones que la extensión, edita (o crea) el archivo:
 
@@ -104,13 +111,13 @@ También puedes apuntar `args` al `dist/mcp/server.js` del repo si desarrollas e
 "args": ["C:/Users/TU_USUARIO/Documents/MCP/mcp-db/dist/mcp/server.js"]
 ```
 
-### 5. Reiniciar / recargar MCP
+### Reiniciar / recargar MCP
 
 1. Guarda `mcp.json`  
 2. En Cursor: **Settings → MCP** y asegúrate de que `mcp-db` aparece y está habilitado  
 3. Si ya estaba cargado, **reinicia Cursor** o desactiva/activa el servidor MCP para que tome el `env` nuevo  
 
-### 6. Crear una conexión en la extensión
+### Crear una conexión en la extensión
 
 1. Abre el icono **MCP DB** en la Activity Bar (barra izquierda)  
 2. Pulsa **+** (*Añadir conexión*)  
@@ -126,7 +133,7 @@ Al guardar, la extensión escribe/actualiza:
 
 (`%USERPROFILE%\.mcp-db\connections.json` en Windows)
 
-### 7. Verificar que el agente puede usarlo
+### Verificar que el agente puede usarlo
 
 En el chat de Cursor (modo agente / tools habilitados), prueba:
 
@@ -141,7 +148,7 @@ Otras pruebas útiles:
 > Describe la tabla CatalogoSistemas  
 > Muéstrame 5 filas de CatalogoSistemas  
 
-Si `db_list_connections` devuelve `[]`, vuelve al paso 4 y comprueba `MCP_DB_CONNECTIONS`.
+Si `db_list_connections` devuelve `[]`, revisa la sección de `mcp.json` / `MCP_DB_CONNECTIONS`.
 
 ---
 
@@ -187,15 +194,10 @@ Ejemplo de prompt:
 
 ## Actualizar la extensión
 
-```bash
-git pull
-npm install
-npm run build
-npm run package
-cursor --install-extension mcp-db-0.1.1.vsix
-```
-
-Luego recarga la ventana y, si cambió la ruta del `server.js` en Extensions, actualiza `args` en `mcp.json`.
+1. Descarga el `.vsix` nuevo desde el release **[Latest](https://github.com/AndresCardenas29/mcp-db/releases/tag/latest)**  
+2. Instálalo otra vez (`Install from VSIX` o `cursor --install-extension …`)  
+3. Recarga la ventana  
+4. Si cambió la ruta del `server.js` en Extensions, actualiza `args` en `mcp.json`
 
 ---
 
@@ -278,7 +280,7 @@ Para SQLite usa `filename` en lugar de host/puerto.
 | `Cannot find module …/server.js` | Ruta en `args`: reinstala el `.vsix` o apunta al `dist` del repo tras `npm run build` |
 | Fallo al conectar SQL Server | Host/puerto, usuario, firewall; prueba desde la extensión *Probar conexión* |
 | Consulta destructiva bloqueada | Activa `mcpDb.allowDestructiveQueries` o `MCP_DB_ALLOW_DESTRUCTIVE=1` / `allowDestructive: true` en el tool |
-| Ves tablas en la UI pero el agente no | La UI y el MCP deben compartir el mismo `connections.json` (paso 4) |
+| Ves tablas en la UI pero el agente no | La UI y el MCP deben compartir el mismo `connections.json` (`MCP_DB_CONNECTIONS`) |
 
 ---
 
