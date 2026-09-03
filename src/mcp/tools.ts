@@ -163,8 +163,20 @@ export async function handleMcpTool(
 ) {
   try {
     switch (name) {
-      case 'db_list_connections':
-        return text(await service.listConnections());
+      case 'db_list_connections': {
+        const connections = await service.listConnections();
+        if (!connections.length) {
+          const { discoverConnectionsPaths } = await import('../db/store');
+          const paths = discoverConnectionsPaths();
+          return text({
+            connections: [],
+            message:
+              'No se encontraron conexiones. Crea una con db_upsert_connection o añádela desde la extensión MCP DB en VS Code/Cursor.',
+            searchedPaths: paths,
+          });
+        }
+        return text(connections);
+      }
 
       case 'db_upsert_connection': {
         const parsed = z

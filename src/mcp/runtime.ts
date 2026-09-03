@@ -1,6 +1,6 @@
 import { DatabaseService } from '../db/service';
 import type { ConnectionStore } from '../db/store';
-import { FileConnectionStore, defaultConnectionsPath } from '../db/store';
+import { MultiFileConnectionStore, defaultConnectionsPath } from '../db/store';
 import type { ConnectionInput, DatabaseDriver } from '../db/types';
 
 export interface McpRuntimeOptions {
@@ -14,7 +14,7 @@ export interface McpRuntimeOptions {
 export function createDatabaseService(options: McpRuntimeOptions = {}): DatabaseService {
   const store =
     options.store ??
-    new FileConnectionStore(options.connectionsPath || process.env.MCP_DB_CONNECTIONS || defaultConnectionsPath());
+    new MultiFileConnectionStore(options.connectionsPath || process.env.MCP_DB_CONNECTIONS || defaultConnectionsPath());
 
   return new DatabaseService(store, {
     allowDestructiveQueries: options.allowDestructiveQueries,
