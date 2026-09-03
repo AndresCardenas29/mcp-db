@@ -1,0 +1,62 @@
+name: Build VSIX
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build and package VSIX
+        run: npm run package
+
+      - name: Read package version
+        id: version
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mcp-db-${{ steps.version.outputs.version }}
+          path: '*.vsix'
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish Latest release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: latest
+          name: MCP DB (latest)
+          body: |
+            Extensión lista para instalar (`.vsix`).
+
+            **Instalar en Cursor / VS Code**
+            1. Descarga el archivo `.vsix` de este release
+            2. Extensions → `⋯` → **Install from VSIX…**
+            3. O por CLI: `cursor --install-extension mcp-db-*.vsix`
+
+            Commit: `${{ github.sha }}`
+            Versión del package: `${{ steps.version.outputs.version }}`
+          artifacts: '*.vsix'
+          allowUpdates: true
+          replacesArtifacts: true
+          makeLatest: true
+          commit: ${{ github.sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
