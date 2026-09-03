@@ -95,6 +95,90 @@ export function defaultConnectionsPath(): string {
   return path.join(home, '.mcp-db', 'connections.json');
 }
 
+/**
+ * Find all candidate connection files: explicit env var, default path,
+ * and any temp-synced files the extension may have written.
+ */
+export function discoverConnectionsPaths(): string[] {
+  const candidates: string[] = [];
+  const envPath = process.env.MCP_DB_CONNECTIONS;
+  if (envPath) {
+    candidates.push(envPath);
+  }
+  candidates.push(defaultConnectionsPath());
+  try {
+    const tmpDir = require('node:os').tmpdir();
+    const entries = fs.readdirSync(tmpDir);
+    for (const entry of entries) {
+      if (entry.startsWith('mcp-db-connections-') && entry.endsWith('.json')) {
+        candidates.push(path.join(tmpDir, entry));
+      }
+    }
+  } catch {
+    // ignore
+  }
+  return [...new Set(candidates)];
+}
+
+/**
+ * Store that merges connections from multiple file locations.
+ * Writes go to the primary path; reads merge all discovered files.
+ */
+export class MultiFileConnectionStore implements ConnectionStore {
+  private readonly primaryPath: string;
+
+  constructor(primaryPath?: string) {
+    this.primaryPath = primaryPath || process.env.MCP_DB_CONNECTIONS || defaultConnectionsPath();
+  }
+
+  private async readAllFiles(): Promise<ConnectionConfig[]> {
+    const paths = discoverConnectionsPaths();
+    const byId = new Map<string, ConnectionConfig>();
+    for (const filePath of paths) {
+      try {
+        if (!fs.existsSync(filePath)) continue;
+        const raw = await fs.promises.readFile(filePath, 'utf8');
+        const parsed = JSON.parse(raw);
+        const items: ConnectionConfig[] = Array.isArray(parsed) ? parsed : [];
+        for (const item of items) {
+          if (item.id && !byId.has(item.id)) {
+            byId.set(item.id, item);
+          }
+        }
+      } catch {
+        // skip unreadable files
+      }
+    }
+    return [...byId.values()];
+  }
+
+  private async writeAll(connections: ConnectionConfig[]): Promise<void> {
+    const dir = path.dirname(this.primaryPath);
+    await fs.promises.mkdir(dir, { recursive: true });
+    await fs.promises.writeFile(this.primaryPath, JSON.stringify(connections, null, 2), 'utf8');
+  }
+
+  async list(): Promise<ConnectionConfig[]> {
+    const all = await this.readAllFiles();
+    return all.sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  async get(id: string): Promise<ConnectionConfig | undefined> {
+    const all = await this.readAllFiles();
+    return all.find((item) => item.id === id);
+  }
+
+  async upsert(input: ConnectionInput): Promise<ConnectionConfig> {
+    const primary = new FileConnectionStore(this.primaryPath);
+    return primary.upsert(input);
+  }
+
+  async remove(id: string): Promise<boolean> {
+    const primary = new FileConnectionStore(this.primaryPath);
+    return primary.remove(id);
+  }
+}
+
 export function sanitizeConnection(connection: ConnectionConfig): Omit<ConnectionConfig, 'password'> & {
   hasPassword: boolean;
 } {
